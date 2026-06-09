@@ -1145,7 +1145,7 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 
 /* ════ Audio ════ */
 let actx=null,musicGain=null,sfxGain=null,buf=null,srcNode=null,decoded=false,audioStarted=false;
-let musicVol=0.25,sfxVol=1.0,voiceVol=1.0,musicMuted=false,sfxMuted=false,voiceMuted=false;
+let musicVol=0.25,sfxVol=1.0,voiceVol=0.8,musicMuted=false,sfxMuted=false,voiceMuted=false;
 let autoSpeakEnabled=true;
 const bgm=document.getElementById('bgm'); bgm.volume=0.25;
 function ctx(){

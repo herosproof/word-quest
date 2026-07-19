@@ -1273,21 +1273,35 @@ function playVoice(url){
 }
 function hasVoice(url){return VOICE_LOADED[url]===true;}
 
-// ── Word audio: TTS via Web Speech API ──
+// ── Word audio: real file first (voice/word_<slug>.mp3), TTS fallback ──
+const VOICE_DEBUG=/[?&]debug=1/.test(location.search);
+function wslug(w){return String(w).toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');}
 let speechUtter=null;
-function speakWord(){
-  if(voiceMuted)return;
-  if(!cur)return;
-  const word=cur.display||cur.word;
+function ttsWord(word,btn){
   if(!('speechSynthesis' in window))return;
+  if(VOICE_DEBUG)console.log('[voice] TTS fallback:',word);
   window.speechSynthesis.cancel();
-  const btn=document.getElementById('word-audio-btn');
   speechUtter=new SpeechSynthesisUtterance(word);
   speechUtter.lang='en-US';speechUtter.rate=0.88;speechUtter.pitch=1;
   speechUtter.volume=voiceVol;
   speechUtter.onstart=()=>{if(btn)btn.classList.add('speaking');};
   speechUtter.onend=speechUtter.onerror=()=>{if(btn)btn.classList.remove('speaking');};
   window.speechSynthesis.speak(speechUtter);
+}
+function speakWord(){
+  if(voiceMuted)return;
+  if(!cur)return;
+  const word=cur.display||cur.word;
+  const btn=document.getElementById('word-audio-btn');
+  let fell=false;const fall=()=>{if(fell)return;fell=true;if(btn)btn.classList.remove('speaking');ttsWord(word,btn);};
+  try{
+    const a=new Audio('voice/word_'+wslug(word)+'.mp3');
+    a.volume=voiceVol;
+    a.onplay=()=>{if(VOICE_DEBUG)console.log('[voice] file:',a.src);if(btn)btn.classList.add('speaking');};
+    a.onended=()=>{if(btn)btn.classList.remove('speaking');};
+    a.onerror=fall;
+    a.play().catch(fall);
+  }catch(e){fall();}
 }
 function autoSpeakWord(){if(autoSpeakEnabled&&!voiceMuted)speakWord();}
 
